@@ -1,7 +1,9 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Route as R;
+use App\Http\Controllers\Api\{
+    OrderBookController,
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +16,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+R::group(['prefix' => '/orderbook'], function () {
+    R::post('/get', [OrderBookController::class, 'get']);
 });

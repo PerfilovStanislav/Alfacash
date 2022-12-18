@@ -1,66 +1,68 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<p align="center"><a href="https://www.alfa.cash/ru" target="_blank"><img src="https://www.alfa.cash/f/img/light.cdb6c29.svg" width="400" alt="Alfacash Logo"></a></p>
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Тестовое задание
 
-## About Laravel
+Необходимо разработать систему для поиска наилучшего курса для покупки/продажи криптовалюты на бирже.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* входные данные: пара (исходная валюта - валюта к получению), количество продаваемой первой криптовалюты, пример: ETH_XRP, 0.9345 ETH
+* необходимо учесть, что пара может быть прямая, и для нее тоже должны показаться результаты
+* использовать для примера конкретную биржу - Binance
+* использовать библиотеку ccxt для взаимодействия с биржами
+* реализовать в примере - сразу несколько поисков с выводом, почему один лучше другого
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Пример:  
+Входные данные: ETH_XEM 0.9, BTC_USDT 0.56, также добавить других пар-примеров  
+Вывод результата:
+* найти все пары, которые позволяют перейти от ETH к XEM, учитывая комиссии Binance
+* показать все возможные маршруты от А к В, используя стаканы, сделать расчеты и предложить лучший и самый выгодный курс (отметить лучший маршрут)
+* показать комиссию для всех поисков, а так же курс
 
-## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Решение
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Получаем с биржи все возможные валютные пары, по которым возможен переход от одной валюты к другой.
+Например: `ETH_USDT -> XRP_USDT`, `ETH_EUR, XRP_EUR`, ...
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Асинхронно получаем стаканы по всем парам.
 
-## Laravel Sponsors
+По каждой найденной паре берём первую заявку и сравниваем их. 
+Находим валюту с лучшим соотношением с учётом комиссий.
+Совершаем 2 сделки (Продаём основную валюту и покупаем желаемую). 
+Повторяем до того момента, пока не останется валюты или не опустошим все стаканы.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+### Входные данные
+```JSON
+{
+    "pair": "ETH_XRP",
+    "amount": 120
+}
+```
 
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Результат
+```JSON
+{
+    "BUSD": {
+        "in": 26.125009992336626, // ETH
+        "out": 88027.88399999999  // XRP
+    },
+    "EUR": {
+        "in": 4.892812184684103,
+        "out": 16484.498999999996
+    },
+    "USDT": {
+        "in": 58.502402745655566,
+        "out": 197114.34216282892
+    },
+    "BTC": {
+        "in": 29.87977507732372,
+        "out": 100659.24
+    },
+    "GBP": {
+        "in": 0.6000000000000001,
+        "out": 2020.8578739622644
+    },
+    "remind_volume": 0,
+    "out_volume": 404711.53457136237
+}
+```
