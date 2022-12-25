@@ -13,7 +13,7 @@ class OrderbookTest extends TestCase
     {
         $response = $this->postJson('/api/orderbook/get', [
             'pair' => 'ETH_XRP',
-            'amount' => 120,
+            'amount' => 10,
         ]);
 
         $response->assertStatus(200);
